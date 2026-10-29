@@ -19,9 +19,8 @@ variable "resource_group_name" {
 }
 
 variable "oidc_issuer_url" {
+  description = "AKS OIDC issuer URL (from the AKS cluster resource)."
   type        = string
-  default     = null
-  description = "Override the AKS OIDC issuer URL."
 }
 
 variable "namespace" {

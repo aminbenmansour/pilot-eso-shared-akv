@@ -1,10 +1,3 @@
-locals {
-  oidc_issuer_url = coalesce(
-    var.oidc_issuer_url,
-    data.terraform_remote_state.aks.outputs.oidc_issuer_url
-  )
-}
-
 resource "azurerm_user_assigned_identity" "app" {
   name                = "id-eso-${var.app}-${var.env}"
   location            = var.location
