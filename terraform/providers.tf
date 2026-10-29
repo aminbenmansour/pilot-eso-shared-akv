@@ -4,6 +4,10 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 5.10.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 3.4.0"
+    }
   }
 }
 
@@ -14,3 +18,8 @@ provider "azurerm" {
     }
   }
 }
+
+# Used to create the workload-identity annotated service accounts. It defaults
+# to the current kubeconfig context, so make sure it points at the AKS cluster
+# before planning/applying (az aks get-credentials ...).
+provider "kubernetes" {}

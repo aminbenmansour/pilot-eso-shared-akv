@@ -1,5 +1,5 @@
 module "glitchtip_identity" {
-  source = "../../modules/eso-app-identity"
+  source = "../../"
 
   app                 = "glitchtip"
   env                 = "dev"
