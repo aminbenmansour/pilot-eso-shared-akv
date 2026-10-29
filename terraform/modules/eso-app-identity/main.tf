@@ -5,12 +5,11 @@ resource "azurerm_user_assigned_identity" "app" {
 }
 
 resource "azurerm_federated_identity_credential" "app" {
-  name                = "eso-${var.app}"
-  resource_group_name = var.resource_group_name
-  parent_id           = azurerm_user_assigned_identity.app.id
-  audience            = ["api://AzureADTokenExchange"]
-  issuer              = var.oidc_issuer_url
-  subject             = "system:serviceaccount:${var.namespace}:eso-${var.app}"
+  name                      = "eso-${var.app}"
+  user_assigned_identity_id = azurerm_user_assigned_identity.app.id
+  audience                  = ["api://AzureADTokenExchange"]
+  issuer                    = var.oidc_issuer_url
+  subject                   = "system:serviceaccount:${var.namespace}:eso-${var.app}"
 }
 
 resource "azurerm_role_assignment" "secrets_user" {
