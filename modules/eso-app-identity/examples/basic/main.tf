@@ -1,5 +1,6 @@
 module "glitchtip_identity" {
-  source = "../../"
+  # For local development against this checkout, use source = "../../".
+  source = "git::https://github.com/aminbenmansour/pilot-eso-shared-akv.git//modules/eso-app-identity?ref=v1.0.0"
 
   app                 = "glitchtip"
   env                 = "dev"
