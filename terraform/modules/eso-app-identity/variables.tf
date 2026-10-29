@@ -32,3 +32,21 @@ variable "key_vault_id" {
   description = "Resource ID of the Azure Key Vault."
   type        = string
 }
+
+variable "manage_service_account" {
+  description = "Whether to create the Kubernetes service account (with workload identity annotations) in the target cluster."
+  type        = bool
+  default     = true
+}
+
+variable "service_account_name" {
+  description = "Name of the Kubernetes service account. Defaults to \"eso-<app>\"."
+  type        = string
+  default     = null
+}
+
+variable "service_account_labels" {
+  description = "Additional labels applied to the Kubernetes service account."
+  type        = map(string)
+  default     = {}
+}
