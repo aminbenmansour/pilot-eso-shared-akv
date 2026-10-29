@@ -1,0 +1,43 @@
+name: terraform
+
+on:
+  pull_request:
+    paths:
+      - "terraform/**"
+      - "modules/**"
+      - ".github/workflows/terraform.yml"
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - "modules/**"
+      - ".github/workflows/terraform.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: fmt and validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.13.1
+
+      - name: Check formatting
+        run: tofu fmt -check -recursive terraform modules
+
+      - name: Validate root configuration
+        working-directory: terraform
+        run: |
+          tofu init -backend=false -input=false
+          tofu validate
+
+      - name: Validate module
+        working-directory: modules/eso-app-identity
+        run: |
+          tofu init -backend=false -input=false
+          tofu validate
