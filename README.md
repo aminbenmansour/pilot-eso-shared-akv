@@ -34,9 +34,9 @@ the local kubeconfig context:
 provider "kubernetes" {}
 ```
 
-or configure it explicitly, for example with the cluster's kube config.
-Private-repository authentication (SSH or CI credential helper) is covered in
-the module README.
+or configure it explicitly, for example with the cluster's kube config. The
+repository is public, so no credentials are needed; private mirrors can follow
+the authentication guidance in the module README.
 
 The module requires the application namespace to exist and, for existing
 clusters, that the previously hand-created service account is deleted or
