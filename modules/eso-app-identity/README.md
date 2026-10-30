@@ -33,8 +33,8 @@ module "glitchtip_identity" {
 
 Pin `ref` to a tag (or a commit SHA). Branches move and are not reproducible.
 
-The repository is private, so the machine or CI job running Terraform needs
-read access. Use SSH:
+The repository is public, so no credentials are needed. If you mirror or fork it
+privately, use SSH:
 
 ```hcl
 source = "git::ssh://git@github.com/aminbenmansour/pilot-eso-shared-akv.git//modules/eso-app-identity?ref=v1.0.0"
