@@ -1,0 +1,21 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps
+  namespace: flux-system
+spec:
+  interval: 10m
+  path: ./gitops/environments/staging
+  prune: true
+  retryInterval: 1m
+  timeout: 5m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  dependsOn:
+    - name: external-secrets
+  healthCheckExprs:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      current: size(status.conditions) > 0 && status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'True')
+      failed: size(status.conditions) > 0 && status.conditions.filter(e, e.type == 'Ready').all(e, e.status == 'False')
