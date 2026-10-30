@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: eso-apps-auto
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - clusters:
+        selector:
+          matchExpressions:
+            - key: eso-example
+              operator: In
+              values: ["true"]
+            - key: env
+              operator: In
+              values: [dev, staging]
+  template:
+    metadata:
+      name: '{{.name}}-glitchtip'
+      labels:
+        app.kubernetes.io/part-of: eso-example
+        env: '{{index .metadata.labels "env"}}'
+    spec:
+      project: eso-apps
+      source:
+        repoURL: https://github.com/aminbenmansour/pilot-eso-shared-akv.git
+        targetRevision: main
+        path: 'gitops/environments/{{index .metadata.labels "env"}}'
+      destination:
+        server: '{{.server}}'
+        namespace: glitchtip
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        retry:
+          limit: 5
+          backoff:
+            duration: 30s
+            factor: 2
+            maxDuration: 5m
+        syncOptions:
+          - ServerSideApply=true
+          # The ESO CRDs may not be installed yet on a fresh cluster.
+          - SkipDryRunOnMissingResource=true

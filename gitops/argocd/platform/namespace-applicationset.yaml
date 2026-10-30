@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: eso-platform-namespace
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - clusters:
+        selector:
+          matchLabels:
+            eso-example: "true"
+  template:
+    metadata:
+      name: '{{.name}}-glitchtip-namespace'
+      labels:
+        app.kubernetes.io/part-of: eso-example
+    spec:
+      project: eso-platform
+      source:
+        repoURL: https://github.com/aminbenmansour/pilot-eso-shared-akv.git
+        targetRevision: main
+        path: gitops/platform
+      destination:
+        server: '{{.server}}'
+        namespace: glitchtip
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
