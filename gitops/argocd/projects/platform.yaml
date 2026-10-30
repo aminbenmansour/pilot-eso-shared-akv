@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: eso-platform
+  namespace: argocd
+spec:
+  description: External Secrets Operator and namespace bootstrap for the shared Key Vault pilot
+  sourceRepos:
+    - https://github.com/aminbenmansour/pilot-eso-shared-akv.git
+    - https://charts.external-secrets.io
+  destinations:
+    - server: "*"
+      namespace: external-secrets
+    - server: "*"
+      namespace: glitchtip
+  # Installing the operator needs cluster-scoped resources; keep this project
+  # separate from the application project, which allows none.
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+    - group: apiextensions.k8s.io
+      kind: CustomResourceDefinition
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRole
+    - group: rbac.authorization.k8s.io
+      kind: ClusterRoleBinding
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration

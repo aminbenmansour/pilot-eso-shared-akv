@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - projects/platform.yaml
+  - projects/apps.yaml
+  - platform/namespace-applicationset.yaml
+  - platform/external-secrets-applicationset.yaml
+  - apps/applicationset-auto.yaml
+  - apps/applicationset-prod.yaml

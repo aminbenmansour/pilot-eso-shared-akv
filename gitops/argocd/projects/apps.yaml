@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: eso-apps
+  namespace: argocd
+spec:
+  description: Per-application ExternalSecret resources for the shared Key Vault pilot
+  sourceRepos:
+    - https://github.com/aminbenmansour/pilot-eso-shared-akv.git
+  destinations:
+    - server: "*"
+      namespace: glitchtip
+  # Application workloads must not create cluster-scoped resources.
+  clusterResourceWhitelist: []
