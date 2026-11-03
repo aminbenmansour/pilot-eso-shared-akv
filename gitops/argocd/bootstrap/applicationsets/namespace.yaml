@@ -21,7 +21,7 @@ spec:
       source:
         repoURL: https://github.com/aminbenmansour/pilot-eso-shared-akv.git
         targetRevision: main
-        path: gitops/platform
+        path: gitops/argocd/manifests/platform
       destination:
         server: '{{.server}}'
         namespace: glitchtip

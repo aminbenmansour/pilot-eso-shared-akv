@@ -11,11 +11,4 @@ patches:
     patch: |-
       - op: replace
         path: /spec/provider/azurekv/vaultUrl
-        value: https://kv-myproject-staging.vault.azure.net
-  - target:
-      kind: ExternalSecret
-      name: glitchtip-env
-    patch: |-
-      - op: replace
-        path: /spec/refreshInterval
-        value: 15m
+        value: https://kv-myproject-prod.vault.azure.net

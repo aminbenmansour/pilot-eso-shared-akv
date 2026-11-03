@@ -5,7 +5,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./gitops/platform
+  path: ./gitops/flux/manifests/platform
   prune: true
   wait: true
   timeout: 2m
@@ -20,7 +20,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 10m
-  path: ./gitops/flux/platform
+  path: ./gitops/flux/manifests/external-secrets
   prune: true
   timeout: 10m
   sourceRef:

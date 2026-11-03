@@ -15,7 +15,7 @@ spec:
               values: ["true"]
             - key: env
               operator: In
-              values: [dev, staging]
+              values: [dev]
   template:
     metadata:
       name: '{{.name}}-glitchtip'
@@ -27,7 +27,7 @@ spec:
       source:
         repoURL: https://github.com/aminbenmansour/pilot-eso-shared-akv.git
         targetRevision: main
-        path: 'gitops/environments/{{index .metadata.labels "env"}}'
+        path: 'gitops/argocd/manifests/environments/{{index .metadata.labels "env"}}'
       destination:
         server: '{{.server}}'
         namespace: glitchtip

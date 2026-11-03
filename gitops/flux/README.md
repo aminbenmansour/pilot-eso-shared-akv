@@ -1,35 +1,51 @@
-# Flux CD setup
+# Flux CD example
 
-Flux runs inside every cluster; there is no management cluster and no cluster
-secrets to maintain. Each cluster directory is the entry point for that
-environment and points at the matching overlay.
+A self-contained Flux CD deployment of the shared Key Vault pilot. Flux runs as
+an agent inside every cluster, so there is no management cluster and no cluster
+registration. Nothing in this directory references paths outside `gitops/flux/`.
 
-## Prerequisites
+## Layout
 
-- `flux` CLI and credentials for the target cluster.
-- The repository already exists (Flux bootstrap pushes to it).
+```
+gitops/flux/
+  clusters/<env>/             # bootstrap entry point per environment
+    infrastructure.yaml       # platform namespace, then the ESO HelmRelease
+    apps.yaml                 # environment overlay, after ESO is ready
+  manifests/                  # what Flux reconciles
+    platform/namespace.yaml
+    external-secrets/         # HelmRepository + HelmRelease
+    apps/glitchtip/base/      # env-agnostic SecretStore + ExternalSecret
+    environments/<env>/       # per-environment vault URL and refresh
+```
 
-## Bootstrap
+`clusters/<env>/` holds only Flux `Kustomization` objects. Every `spec.path`
+points inside `gitops/flux/manifests/`, which is what makes the example
+standalone.
 
-Run once per cluster:
+## Deploy
 
 ```bash
-# dev
+./gitops/flux/deploy.sh dev --dry-run   # print the bootstrap command
+./gitops/flux/deploy.sh dev
+```
+
+The script wraps `flux bootstrap github`:
+
+```bash
 flux bootstrap github \
   --owner=aminbenmansour \
   --repository=pilot-eso-shared-akv \
   --branch=main \
   --path=gitops/flux/clusters/dev \
-  --personal
-
-# repeat with --path=gitops/flux/clusters/staging and .../prod
+  --personal \
+  --reconcile
 ```
 
-Bootstrap commits `gotk-sync.yaml` and `kustomization.yaml` into the cluster
-directory. They are intentionally not part of this example because they contain
-the generated sync configuration and must be created against the real
-repository. The `flux-system` Kustomization then reconciles everything in that
-directory.
+Run it once per cluster (`dev`, `prod`). Bootstrap commits
+`flux-system/` into the cluster directory; that generated sync configuration is
+intentionally not part of this example because it must be created against the
+real repository. The `flux-system` Kustomization then reconciles everything in
+the directory.
 
 The repository is public; no deploy key or token secret is needed at runtime.
 
@@ -38,9 +54,9 @@ The repository is public; no deploy key or token secret is needed at runtime.
 | Kustomization | Path | Purpose |
 |---------------|------|---------|
 | `flux-system` (bootstrap) | `gitops/flux/clusters/<env>` | applies the cluster entry point |
-| `platform` | `gitops/platform` | `glitchtip` namespace |
-| `external-secrets` | `gitops/flux/platform` | ESO Helm chart and its CRDs |
-| `apps` | `gitops/environments/<env>` | `SecretStore` and `ExternalSecret` |
+| `platform` | `gitops/flux/manifests/platform` | `glitchtip` namespace |
+| `external-secrets` | `gitops/flux/manifests/external-secrets` | ESO Helm chart and its CRDs |
+| `apps` | `gitops/flux/manifests/environments/<env>` | `SecretStore` and `ExternalSecret` |
 
 Ordering comes from `dependsOn`: `external-secrets` waits for `platform`, and
 `apps` waits for `external-secrets`. The `external-secrets` Kustomization uses a
@@ -63,11 +79,11 @@ ESO version.
 
 ## Promotion
 
-- Dev and staging reconcile automatically after a merge.
+- Dev reconciles automatically after a merge.
 - Production is gated by pull request review and branch protection: the `apps`
-  Kustomization applies `gitops/environments/prod` once the change lands on
-  `main`. If you need an explicit approval step in the cluster, suspend the
-  Kustomization and resume it after sign-off:
+  Kustomization applies `gitops/flux/manifests/environments/prod` once the change
+  lands on `main`. If you need an explicit approval step in the cluster, suspend
+  the Kustomization and resume it after sign-off:
 
   ```bash
   flux suspend kustomization apps
@@ -95,7 +111,10 @@ kubectl -n glitchtip get externalsecret glitchtip-env -o yaml
 
 ## Notes
 
-- The ESO chart is pinned in `gitops/flux/platform/external-secrets.yaml`
+- The ESO chart is pinned in `manifests/external-secrets/external-secrets.yaml`
   (currently `2.14.0`). Bump it deliberately through a pull request.
 - The workload identity service account is Terraform-managed; see
   `gitops/README.md`.
+- The `manifests/` tree is deliberately duplicated in the `plain` and `argocd`
+  examples so each one can be read and deployed on its own. Keep the copies in
+  sync; CI checks them.
