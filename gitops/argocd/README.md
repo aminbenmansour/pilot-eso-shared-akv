@@ -1,8 +1,25 @@
-# Argo CD setup
+# Argo CD example
 
-Argo CD runs on a management cluster and deploys to one cluster per
-environment. The environment isolation lives in `gitops/environments/<env>`;
-this directory only wires those paths to the clusters.
+A self-contained Argo CD deployment of the shared Key Vault pilot. One Argo CD
+instance on a management cluster deploys to one cluster per environment. Nothing
+in this directory references paths outside `gitops/argocd/`.
+
+## Layout
+
+```
+gitops/argocd/
+  bootstrap/                 # applied once to the management cluster
+    kustomization.yaml
+    projects/                # AppProjects
+    applicationsets/         # ApplicationSets
+  manifests/                 # reconciled by Argo CD
+    platform/namespace.yaml  # glitchtip namespace
+    apps/glitchtip/base/     # env-agnostic SecretStore + ExternalSecret
+    environments/<env>/      # per-environment vault URL and refresh
+```
+
+`bootstrap/` is Argo CD configuration. `manifests/` is what Argo CD deploys, so
+the ApplicationSets only ever point inside this directory.
 
 ## Prerequisites
 
@@ -21,10 +38,17 @@ Use the same labels for staging and prod (`env=staging`, `env=prod`). The label
 selection is what makes the ApplicationSets multi-cluster: no API server URLs
 are stored in this repository.
 
-## Apply
+## Deploy
 
 ```bash
-kubectl apply -k gitops/argocd
+./gitops/argocd/deploy.sh --dry-run   # render and validate against the API
+./gitops/argocd/deploy.sh
+```
+
+The script runs `kubectl apply -k gitops/argocd/bootstrap`. The raw equivalent:
+
+```bash
+kubectl apply -k gitops/argocd/bootstrap
 ```
 
 This creates:
@@ -33,7 +57,7 @@ This creates:
 |----------|---------|
 | `AppProject/eso-platform` | namespace and ESO installation, with the cluster-scoped permissions the chart needs |
 | `AppProject/eso-apps` | `SecretStore`/`ExternalSecret` only, no cluster-scoped resources |
-| `ApplicationSet/eso-platform-namespace` | `gitops/platform` on every labelled cluster |
+| `ApplicationSet/eso-platform-namespace` | `gitops/argocd/manifests/platform` on every labelled cluster |
 | `ApplicationSet/eso-platform-external-secrets` | ESO Helm chart on every labelled cluster |
 | `ApplicationSet/eso-apps-auto` | dev and staging overlays, automated sync |
 | `ApplicationSet/eso-apps-prod` | prod overlay, manual sync |
@@ -49,8 +73,8 @@ and `argocd.argoproj.io/sync-wave` annotations on the `Application` objects.
 ## Production promotion
 
 `eso-apps-prod` intentionally has no `automated` block. Merging a change to
-`gitops/environments/prod` leaves the application `OutOfSync` until someone
-approves and syncs it:
+`gitops/argocd/manifests/environments/prod` leaves the application `OutOfSync`
+until someone approves and syncs it:
 
 ```bash
 argocd app sync aks-myproject-prod-glitchtip
@@ -81,14 +105,15 @@ resource.customizations.health.external-secrets.io_ExternalSecret: |
   return hs
 ```
 
-Do the same for `ExternalSecret` resources in other repositories if they use the
-same operator.
-
 ## Notes
 
-- The ESO chart version is pinned in `platform/external-secrets-applicationset.yaml`
-  (currently `2.14.0`). Bump it deliberately through a pull request.
+- The ESO chart version is pinned in
+  `bootstrap/applicationsets/external-secrets.yaml` (currently `2.14.0`). Bump it
+  deliberately through a pull request.
 - `targetRevision` points at `main`. Pin to a tag or commit SHA if you need
   reproducible rollbacks independent of the Git history.
 - The workload identity service account is Terraform-managed. Do not add it to an
   overlay; see `gitops/README.md`.
+- The `manifests/` tree is deliberately duplicated in the `plain` and `flux`
+  examples so each one can be read and deployed on its own. Keep the copies in
+  sync; CI checks them.
