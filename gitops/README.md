@@ -1,7 +1,7 @@
 # GitOps examples
 
 Three independent, self-contained ways to deploy the same application to the
-same three environments. Pick the one that matches your platform; each directory
+same two environments. Pick the one that matches your platform; each directory
 can be read, copied or deleted on its own.
 
 | Example | Controller | Entry point |
@@ -32,7 +32,7 @@ gitops/
 ```
 
 Each example owns its copy of `manifests/`: the namespace, the app base and the
-three environment overlays. The copies are identical by design — a small amount
+two environment overlays. The copies are identical by design — a small amount
 of duplication in exchange for examples that can stand alone. CI fails if they
 drift.
 
@@ -41,12 +41,11 @@ drift.
 | Environment | Key Vault | Refresh |
 |-------------|-----------|---------|
 | dev | `https://kv-myproject-dev.vault.azure.net` | 5m |
-| staging | `https://kv-myproject-staging.vault.azure.net` | 15m |
 | prod | `https://kv-myproject-prod.vault.azure.net` | 1h |
 
 One cluster and one Key Vault per environment. The Terraform module only grants
 access to secrets prefixed with `<app>--`, so per-vault separation means a dev
-identity cannot read staging or production secrets.
+identity cannot read production secrets.
 
 ## Ownership
 
@@ -83,7 +82,7 @@ ESO retries; nothing is lost, but the order above avoids the noise.
 - One directory per environment on `main`; no branch-per-environment, so what is
   deployed is always visible in a single revision history.
 - Promotion is a pull request that changes the affected environment directory.
-- Dev and staging may sync automatically; production should require an explicit
+- Dev may sync automatically; production should require an explicit
   approval or manual sync in the GitOps tool.
 
 ## Local validation

@@ -34,7 +34,7 @@ argocd cluster add aks-myproject-dev \
   --label eso-example=true
 ```
 
-Use the same labels for staging and prod (`env=staging`, `env=prod`). The label
+Use the same label for prod (`env=prod`). The label
 selection is what makes the ApplicationSets multi-cluster: no API server URLs
 are stored in this repository.
 
@@ -59,7 +59,7 @@ This creates:
 | `AppProject/eso-apps` | `SecretStore`/`ExternalSecret` only, no cluster-scoped resources |
 | `ApplicationSet/eso-platform-namespace` | `gitops/argocd/manifests/platform` on every labelled cluster |
 | `ApplicationSet/eso-platform-external-secrets` | ESO Helm chart on every labelled cluster |
-| `ApplicationSet/eso-apps-auto` | dev and staging overlays, automated sync |
+| `ApplicationSet/eso-apps-auto` | dev overlay, automated sync |
 | `ApplicationSet/eso-apps-prod` | prod overlay, manual sync |
 
 ## Ordering
@@ -80,7 +80,7 @@ until someone approves and syncs it:
 argocd app sync aks-myproject-prod-glitchtip
 ```
 
-Dev and staging prune and self-heal automatically.
+Dev prunes and self-heals automatically.
 
 ## ExternalSecret health
 

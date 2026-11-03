@@ -8,7 +8,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: gitops/plain/deploy.sh <dev|staging|prod> [--dry-run] [--skip-eso]
+Usage: gitops/plain/deploy.sh <dev|prod> [--dry-run] [--skip-eso]
 
 Options:
   --dry-run    render everything, do not change the cluster
@@ -35,9 +35,9 @@ fi
 shift
 
 case "$env_name" in
-  dev|staging|prod) ;;
+  dev|prod) ;;
   *)
-    echo "error: unknown environment '$env_name' (expected dev, staging or prod)" >&2
+    echo "error: unknown environment '$env_name' (expected dev or prod)" >&2
     exit 2
     ;;
 esac

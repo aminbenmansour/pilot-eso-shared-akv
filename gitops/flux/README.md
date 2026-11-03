@@ -41,7 +41,7 @@ flux bootstrap github \
   --reconcile
 ```
 
-Run it once per cluster (`dev`, `staging`, `prod`). Bootstrap commits
+Run it once per cluster (`dev`, `prod`). Bootstrap commits
 `flux-system/` into the cluster directory; that generated sync configuration is
 intentionally not part of this example because it must be created against the
 real repository. The `flux-system` Kustomization then reconciles everything in
@@ -79,7 +79,7 @@ ESO version.
 
 ## Promotion
 
-- Dev and staging reconcile automatically after a merge.
+- Dev reconciles automatically after a merge.
 - Production is gated by pull request review and branch protection: the `apps`
   Kustomization applies `gitops/flux/manifests/environments/prod` once the change
   lands on `main`. If you need an explicit approval step in the cluster, suspend

@@ -18,7 +18,7 @@ Environment:
 
 Prerequisites:
   - Argo CD installed on the management cluster
-  - every target cluster registered with env=<dev|staging|prod> and
+  - every target cluster registered with env=<dev|prod> and
     eso-example=true, for example:
       argocd cluster add aks-myproject-dev --name aks-myproject-dev \
         --label env=dev --label eso-example=true

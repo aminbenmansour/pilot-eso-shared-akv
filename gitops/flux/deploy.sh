@@ -8,7 +8,7 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: gitops/flux/deploy.sh <dev|staging|prod> [--dry-run]
+Usage: gitops/flux/deploy.sh <dev|prod> [--dry-run]
 
 Options:
   --dry-run   print the bootstrap command instead of running it
@@ -37,9 +37,9 @@ fi
 shift
 
 case "$env_name" in
-  dev|staging|prod) ;;
+  dev|prod) ;;
   *)
-    echo "error: unknown environment '$env_name' (expected dev, staging or prod)" >&2
+    echo "error: unknown environment '$env_name' (expected dev or prod)" >&2
     exit 2
     ;;
 esac

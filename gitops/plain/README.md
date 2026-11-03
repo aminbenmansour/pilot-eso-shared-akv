@@ -16,19 +16,18 @@ gitops/plain/
 ```
 
 The overlay only patches the values that differ per environment, so the base
-stays identical across dev, staging and prod.
+stays identical across dev and prod.
 
 ## Environments
 
 | Environment | Key Vault | Refresh |
 |-------------|-----------|---------|
 | dev | `https://kv-myproject-dev.vault.azure.net` | 5m |
-| staging | `https://kv-myproject-staging.vault.azure.net` | 15m |
 | prod | `https://kv-myproject-prod.vault.azure.net` | 1h |
 
 Each environment uses its own Key Vault. The Terraform module only grants access
 to secrets prefixed with `<app>--`, so per-vault separation means a dev identity
-cannot read staging or production secrets.
+cannot read production secrets.
 
 ## Deploy
 
@@ -50,7 +49,7 @@ kubectl apply -f gitops/plain/manifests/platform/namespace.yaml
 kubectl apply -k gitops/plain/manifests/environments/dev
 ```
 
-Repeat with `staging` and `prod`, each against its own cluster. After a change,
+Repeat with `prod`, against its own cluster. After a change,
 re-running the same command is enough: `kubectl apply` is idempotent and ESO
 refreshes the secret on its interval.
 
