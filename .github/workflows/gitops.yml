@@ -20,7 +20,7 @@ env:
   CRD_SCHEMA_LOCATION: "https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json"
 
 jobs:
-  render:
+  validate:
     name: render and validate
     runs-on: ubuntu-latest
     steps:
@@ -33,27 +33,33 @@ jobs:
           tar xzf kubeconform.tar.gz kubeconform
           sudo install kubeconform /usr/local/bin/
 
-      - name: Render and validate overlays
+      - name: Lint deploy scripts
+        run: shellcheck gitops/*/deploy.sh
+
+      - name: Render every kustomization
         run: |
           set -euo pipefail
-          for env in dev staging prod; do
-            echo "::group::${env}"
-            kubectl kustomize "gitops/environments/${env}" > "/tmp/${env}.yaml"
-            kubeconform \
-              -strict \
-              -ignore-missing-schemas \
-              -summary \
-              -schema-location default \
-              -schema-location "${CRD_SCHEMA_LOCATION}" \
-              "/tmp/${env}.yaml"
+          rm -rf /tmp/render && mkdir -p /tmp/render
+          i=0
+          while IFS= read -r dir; do
+            i=$((i + 1))
+            echo "::group::kustomize ${dir}"
+            kubectl kustomize "${dir}" > "/tmp/render/${i}.yaml"
             echo "::endgroup::"
-          done
+          done < <(find gitops -name kustomization.yaml -printf '%h\n' | sort)
+          echo "rendered ${i} kustomizations"
 
-      - name: Validate platform manifests
+      - name: Validate rendered manifests
         run: |
-          kubeconform -strict -summary gitops/platform/
+          kubeconform \
+            -strict \
+            -ignore-missing-schemas \
+            -summary \
+            -schema-location default \
+            -schema-location "${CRD_SCHEMA_LOCATION}" \
+            /tmp/render/*.yaml
 
-      - name: Validate GitOps manifests
+      - name: Validate raw manifests
         run: |
           set -euo pipefail
           find gitops -name '*.yaml' ! -name 'kustomization.yaml' -print0 \
@@ -63,3 +69,32 @@ jobs:
                 -summary \
                 -schema-location default \
                 -schema-location "${CRD_SCHEMA_LOCATION}"
+
+      - name: Check each example only references its own tree
+        run: |
+          set -euo pipefail
+
+          if grep -rh '^[[:space:]]*path:' gitops/argocd/bootstrap/applicationsets \
+              | grep -v 'gitops/argocd/manifests/'; then
+            echo "::error::an Argo CD path points outside gitops/argocd/manifests"
+            exit 1
+          fi
+
+          if grep -rh '^[[:space:]]*path:' gitops/flux/clusters \
+              | grep -v '\./gitops/flux/manifests/'; then
+            echo "::error::a Flux path points outside gitops/flux/manifests"
+            exit 1
+          fi
+
+          echo "all ApplicationSets and Kustomizations stay inside their example"
+
+      - name: Check the duplicated manifests stay in sync
+        run: |
+          set -euo pipefail
+          for example in argocd flux; do
+            diff -r gitops/plain/manifests/apps "gitops/${example}/manifests/apps"
+            diff -r gitops/plain/manifests/environments "gitops/${example}/manifests/environments"
+            diff gitops/plain/manifests/platform/namespace.yaml \
+              "gitops/${example}/manifests/platform/namespace.yaml"
+            echo "${example}: copies identical to plain"
+          done
