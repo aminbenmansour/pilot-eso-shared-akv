@@ -44,8 +44,17 @@ imported.
 
 ## GitOps
 
-`gitops/` holds the Kubernetes configuration with one Kustomize overlay per
-environment (`dev`, `staging`, `prod`). Each environment points at its own Key
-Vault, while the service account stays Terraform-managed. See
-[gitops/README.md](gitops/README.md) for the ownership contract, bootstrap order
-and promotion flow.
+`gitops/` contains three independent, self-contained examples of the same
+multi-environment deployment: plain Kustomize, Argo CD and Flux CD. Each one
+carries its own `manifests/` tree, points at its own Key Vault per environment,
+and can be read or deployed on its own. The workload identity service account
+stays Terraform-managed in all three.
+
+| Example | Entry point |
+|---------|-------------|
+| [plain](gitops/plain/README.md) | `./gitops/plain/deploy.sh dev` |
+| [Argo CD](gitops/argocd/README.md) | `./gitops/argocd/deploy.sh` |
+| [Flux CD](gitops/flux/README.md) | `./gitops/flux/deploy.sh dev` |
+
+See [gitops/README.md](gitops/README.md) for the ownership contract, bootstrap
+order and promotion flow.
